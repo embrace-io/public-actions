@@ -16,7 +16,7 @@ inputs:
     description: "If true, validates if the request should and could be done"
     required: false
     default: 'false'
-  sdkVersionUrl:
+  uploadUrl:
     description: "Base URL for SDK version publishing"
     required: true
 
@@ -37,7 +37,7 @@ runs:
       shell: bash
       run: |
         echo "Validating token"
-        curl -f "${{ inputs.sdkVersionUrl }}/check-token/" \
+        curl -f "${{ inputs.uploadUrl }}/check-token/" \
           -H "X-Embrace-CI: $SDK_VERSION_TOKEN"
 
     - name: Publish version
@@ -45,7 +45,7 @@ runs:
       shell: bash
       run: |
         echo "Publishing the version ${{ inputs.version }} for the ${{ inputs.platform }} SDK"
-        curl -f -X POST "${{ inputs.sdkVersionUrl }}/${{ inputs.platform }}/version/" \
+        curl -f -X POST "${{ inputs.uploadUrl }}/${{ inputs.platform }}/version/" \
           -H "X-Embrace-CI: $SDK_VERSION_TOKEN" \
           -H "Content-Type: application/json" \
           -d '{"version": "${{ inputs.version }}"}'

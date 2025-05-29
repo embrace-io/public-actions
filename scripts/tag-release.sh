@@ -30,6 +30,14 @@ fi
 set -euo pipefail
 
 FULL_VERSION="$1"
+
+# Validate Semver format: must be X.Y.Z (e.g., 1.2.3)
+if [[ ! "$FULL_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Invalid version: '$FULL_VERSION'"
+  echo "Version must follow Semver format: X.Y.Z (e.g. 1.2.3)"
+  exit 1
+fi
+
 MAJOR_VERSION="v$(echo "$FULL_VERSION" | cut -d. -f1)"
 FULL_TAG="v$FULL_VERSION"
 
@@ -42,4 +50,4 @@ git push -f origin "$MAJOR_VERSION"
 
 echo "Done. Tags pushed:"
 echo "- $FULL_TAG"
-echo "- $MAJOR_VERSION aimint to → $FULL_TAG"
+echo "- $MAJOR_VERSION aiming to → $FULL_TAG"

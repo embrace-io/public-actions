@@ -7,9 +7,9 @@ This GitHub Action validates and publishes an SDK version for a given platform t
 | Name              | Required | Description                                                                 |
 |-------------------|----------|-----------------------------------------------------------------------------|
 | `platform`        | ✅       | Target platform: `ios`, `android`, `rn`, `flutter`, or `unity`.             |
-| `version`         | ✅       | The version string to publish                                               |
+| `version`         | ✅       | The version string to publish (e.g. `1.2.3`).                               |
 | `dryRun`          | ❌       | If `true`, only validates the token without publishing. Default: `false`.   |
-| `sdkVersionUrl`   | ✅       | Base URL for SDK version publishing.                                        |
+| `uploadUrl`       | ✅       | Base URL for SDK version publishing.                                        |
 
 ## Environment Variables
 
@@ -21,10 +21,10 @@ This GitHub Action validates and publishes an SDK version for a given platform t
 - name: Upload SDK version to Embrace
   uses: embrace-io/public-actions/upload-sdk-version@v1
   with:
-    platform: ios
-    version: 1.2.3
+    platform: "ios"
+    version: "1.2.3"
     dryRun: false
-    sdkVersionUrl: ${{ vars.SDK_VERSION_URL }}
+    uploadUrl: ${{ vars.SDK_VERSION_URL }}
   env:
     SDK_VERSION_TOKEN: ${{ secrets.SDK_VERSION_TOKEN }}
 ```
