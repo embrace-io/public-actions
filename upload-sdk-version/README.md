@@ -6,7 +6,7 @@ This GitHub Action validates and publishes an SDK version for a given platform t
 
 | Name       | Required | Description                                                                 |
 |------------|----------|-----------------------------------------------------------------------------|
-| `platform` | ✅       | Target platform: `ios`, `android`, `flutter`, `reactnative`, or `unity`.    |
+| `platform` | ✅       | Target platform: `ios`, `android`, `rn`, `flutter`, or `unity`.             |
 | `version`  | ✅       | The version string to publish                                               |
 | `dry-run`  | ❌       | If `true`, only validates the token without publishing. Default: `false`.   |
 
