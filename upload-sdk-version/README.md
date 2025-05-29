@@ -19,7 +19,7 @@ This GitHub Action validates and publishes an SDK version for a given platform t
 
 ```yaml
 - name: Upload SDK version to Embrace
-  uses: embrace-io/sdk-actions/upload-sdk-version@v1
+  uses: embrace-io/public-actions/upload-sdk-version@v1
   with:
     platform: ios
     version: 1.2.3
