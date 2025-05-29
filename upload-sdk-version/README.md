@@ -4,16 +4,16 @@ This GitHub Action validates and publishes an SDK version for a given platform t
 
 ## Parameters
 
-| Name       | Required | Description                                                                 |
-|------------|----------|-----------------------------------------------------------------------------|
-| `platform` | ✅       | Target platform: `ios`, `android`, `rn`, `flutter`, or `unity`.             |
-| `version`  | ✅       | The version string to publish                                               |
-| `dryRun`   | ❌       | If `true`, only validates the token without publishing. Default: `false`.   |
+| Name              | Required | Description                                                                 |
+|-------------------|----------|-----------------------------------------------------------------------------|
+| `platform`        | ✅       | Target platform: `ios`, `android`, `rn`, `flutter`, or `unity`.             |
+| `version`         | ✅       | The version string to publish                                               |
+| `dryRun`          | ❌       | If `true`, only validates the token without publishing. Default: `false`.   |
+| `sdkVersionUrl`   | ✅       | Base URL for SDK version publishing.                                        |
 
-## Secrets / Variables
+## Environment Variables
 
-- `secrets.SDK_VERSION_TOKEN`: Token used to authenticate requests to the versioning backend.
-- `vars.SDK_VERSION_URL`: Base URL of the dashboard that will handle the SDK versioning.
+- `SDK_VERSION_TOKEN`: Token used to authenticate requests to the versioning backend.
 
 ## How to use
 
@@ -24,8 +24,7 @@ This GitHub Action validates and publishes an SDK version for a given platform t
     platform: ios
     version: 1.2.3
     dryRun: false
-  secrets:
-    SDK_VERSION_TOKEN: ${{ secrets.SDK_VERSION_TOKEN }}
+    sdkVersionUrl: ${{ vars.SDK_VERSION_URL }}
   env:
-    SDK_VERSION_URL: ${{ vars.SDK_VERSION_URL }}
+    SDK_VERSION_TOKEN: ${{ secrets.SDK_VERSION_TOKEN }}
 ```
