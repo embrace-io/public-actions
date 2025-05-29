@@ -8,7 +8,7 @@ This GitHub Action validates and publishes an SDK version for a given platform t
 |------------|----------|-----------------------------------------------------------------------------|
 | `platform` | ✅       | Target platform: `ios`, `android`, `rn`, `flutter`, or `unity`.             |
 | `version`  | ✅       | The version string to publish                                               |
-| `dry-run`  | ❌       | If `true`, only validates the token without publishing. Default: `false`.   |
+| `dryRun`   | ❌       | If `true`, only validates the token without publishing. Default: `false`.   |
 
 ## Secrets / Variables
 
@@ -23,7 +23,7 @@ This GitHub Action validates and publishes an SDK version for a given platform t
   with:
     platform: ios
     version: 1.2.3
-    dry-run: false
+    dryRun: false
   secrets:
     SDK_VERSION_TOKEN: ${{ secrets.SDK_VERSION_TOKEN }}
   env:

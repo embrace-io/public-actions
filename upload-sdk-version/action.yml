@@ -12,7 +12,7 @@ inputs:
   version:
     description: "SDK version to upload"
     required: true
-  dry-run:
+  dryRun:
     description: "If true, validates if the request should and could be done"
     required: false
     default: 'false'
@@ -29,8 +29,8 @@ runs:
           exit 1
         fi
 
-    - name: Validate token (dry-run)
-      if: inputs.dry-run == 'true'
+    - name: Validate token (dry run)
+      if: inputs.dryRun == 'true'
       shell: bash
       run: |
         echo "🔍 Validating token with SDK_VERSION_URL=${{ vars.SDK_VERSION_URL }}"
@@ -38,7 +38,7 @@ runs:
           -H "X-Embrace-CI: ${{ secrets.SDK_VERSION_TOKEN }}"
 
     - name: Publish version
-      if: inputs.dry-run != 'true'
+      if: inputs.dryRun != 'true'
       shell: bash
       run: |
         echo "Publishing the version ${{ inputs.version }} for the ${{ inputs.platform }} SDK"
