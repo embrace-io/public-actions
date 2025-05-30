@@ -1,0 +1,52 @@
+name: "Upload SDK Version"
+description: "Validates and/or uploads the SDK version to the Embrace Dashboard"
+
+branding:
+  icon: "tag"
+  color: "yellow"
+
+inputs:
+  platform:
+    description: "Platform: ios, android, flutter, rn, unity"
+    required: true
+  version:
+    description: "SDK version to upload"
+    required: true
+  dryRun:
+    description: "If true, validates if the request should and could be done"
+    required: false
+    default: 'false'
+  uploadUrl:
+    description: "Base URL for SDK version publishing"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate platform
+      shell: bash
+      run: |
+        VALID_PLATFORMS=(ios android flutter rn unity)
+        if [[ ! " ${VALID_PLATFORMS[@]} " =~ " ${{ inputs.platform }} " ]]; then
+          echo "Invalid platform: ${{ inputs.platform }}"
+          exit 1
+        fi
+
+    - name: Validate token (dry run)
+      if: inputs.dryRun == 'true'
+      shell: bash
+      run: |
+        echo "Validating token"
+        curl -f "${{ inputs.uploadUrl }}/check-token/" \
+          -H "X-Embrace-CI: $SDK_VERSION_TOKEN"
+
+    - name: Publish version
+      if: inputs.dryRun != 'true'
+      shell: bash
+      run: |
+        echo "Publishing the version ${{ inputs.version }} for the ${{ inputs.platform }} SDK"
+        curl -f -X POST "${{ inputs.uploadUrl }}/${{ inputs.platform }}/version/" \
+          -H "X-Embrace-CI: $SDK_VERSION_TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{"version": "${{ inputs.version }}"}'
+

@@ -1,0 +1,31 @@
+name: Test Upload SDK Version Action
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Target platform (ios, android, flutter, reactnative, unity)"
+        required: true
+        default: ios
+      version:
+        description: "SDK version to publish"
+        required: true
+        default: 1.2.3
+      dryRun:
+        description: "Dry run (true/false)"
+        required: false
+        default: "true"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test action from commit
+        uses: embrace-io/public-actions/upload-sdk-version@v1 # testing the latest
+        with:
+          platform: {{ inputs.platform }}
+          version: {{ inputs.version }}
+          dryRun: {{ inputs.dryRun }}
+          sdkVersionUrl: ${{ vars.SDK_VERSION_URL }}
+        env:
+          SDK_VERSION_TOKEN: ${{ secrets.SDK_VERSION_TOKEN }}
