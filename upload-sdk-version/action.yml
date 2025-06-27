@@ -57,7 +57,7 @@ runs:
 
         if [[ "$STATUS" == "409" ]]; then
           if [[ "${{ inputs.failOnConflict }}" == "true" ]]; then
-            echo "::error::Version ${{ inputs.version }} already exists.
+            echo "::error::Version ${{ inputs.version }} already exists."
             exit 1
           else
             echo "::warning::Version ${{ inputs.version }} already exists."
