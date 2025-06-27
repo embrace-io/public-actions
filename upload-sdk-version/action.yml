@@ -19,6 +19,10 @@ inputs:
   uploadUrl:
     description: "Base URL for SDK version publishing"
     required: true
+  failOnConflict:
+    description: "If true, fail the job when a 409 Conflict occurs"
+    required: false
+    default: 'false'
 
 runs:
   using: "composite"
@@ -28,7 +32,7 @@ runs:
       run: |
         VALID_PLATFORMS=(ios android flutter rn unity)
         if [[ ! " ${VALID_PLATFORMS[@]} " =~ " ${{ inputs.platform }} " ]]; then
-          echo "Invalid platform: ${{ inputs.platform }}"
+          echo "::error::Invalid platform: ${{ inputs.platform }}"
           exit 1
         fi
 
@@ -44,9 +48,23 @@ runs:
       if: inputs.dryRun != 'true'
       shell: bash
       run: |
-        echo "Publishing the version ${{ inputs.version }} for the ${{ inputs.platform }} SDK"
-        curl -f -X POST "${{ inputs.uploadUrl }}/${{ inputs.platform }}/version/" \
+        echo "::notice::Publishing the version ${{ inputs.version }} for the ${{ inputs.platform }} SDK"
+
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "${{ inputs.uploadUrl }}/${{ inputs.platform }}/version/" \
           -H "X-Embrace-CI: $SDK_VERSION_TOKEN" \
           -H "Content-Type: application/json" \
-          -d '{"version": "${{ inputs.version }}"}'
+          -d '{"version": "${{ inputs.version }}"}')
 
+        if [[ "$STATUS" == "409" ]]; then
+          if [[ "${{ inputs.failOnConflict }}" == "true" ]]; then
+            echo "::error::Version ${{ inputs.version }} already exists.
+            exit 1
+          else
+            echo "::warning::Version ${{ inputs.version }} already exists."
+          fi
+        elif [[ "$STATUS" =~ ^5 ]]; then
+          echo "::error::Server error. Couldn't submit new version"
+          exit 1
+        else
+          echo "::notice::Version ${{ inputs.version }}pushed. Status: $STATUS"
+        fi
