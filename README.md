@@ -4,4 +4,5 @@ This repository contains reusable GitHub Actions used by Embrace's internal work
 
 ## Available Actions
 
+- [`pr-title-formatter`](./pr-title-formatter): Automatically formats PR titles based on branch naming convention.
 - [`upload-sdk-version`](./upload-sdk-version): Report an SDK release.
