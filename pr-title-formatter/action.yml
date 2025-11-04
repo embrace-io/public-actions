@@ -1,0 +1,177 @@
+name: 'Auto PR Title Formatter'
+description: 'Automatically formats PR titles based on branch naming convention'
+branding:
+  icon: 'tag'
+  color: 'yellow'
+
+inputs:
+  github_token:
+    description: 'GitHub token for API access'
+    required: false
+  additional_types:
+    description: 'Additional branch types as JSON object (e.g. {"perf": "Performance", "ci": "CI/CD", "test": "Test"})'
+    required: false
+    default: '{}'
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github_token || github.token }}
+        script: |
+          const pr = context.payload.pull_request;
+          const branch = pr.head.ref;
+
+          // Parse additional types
+          let additionalTypes = {};
+          try {
+            additionalTypes = JSON.parse('${{ inputs.additional_types }}');
+          } catch (e) {
+            core.warning('Invalid additional_types JSON, using empty object');
+          }
+
+          // Helper function to find and update or create comment
+          async function updateOrCreateComment(commentBody, commentType) {
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number
+            });
+            
+            const botComments = comments.data.filter(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes(commentType)
+            );
+            
+            if (botComments.length > 0) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComments[0].id,
+                body: commentBody
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: pr.number,
+                body: commentBody
+              });
+            }
+          }
+
+          // Default type mapping
+          const DEFAULT_TYPES = {
+            feature: "Feature", feat: "Feature",
+            fix: "Fix", hotfix: "Fix", quickfix: "Fix", patch: "Fix",
+            chore: "Chore", maintenance: "Chore", maint: "Chore",
+            docs: "Docs", doc: "Docs"
+          };
+
+          // Merge default and additional types
+          const TYPE_MAP = { ...DEFAULT_TYPES, ...additionalTypes };
+
+          // Special handling for Dependabot branches
+          if (branch.startsWith('dependabot/')) {
+            core.info('Dependabot PR detected, skipping title formatting');
+            return;
+          }
+
+          // Special handling for release branches
+          if (branch.startsWith('release/')) {
+            const comment = [
+              '🚀 **Release Branch Detected**',
+              '',
+              'This PR appears to be from a release branch (`' + branch + '`).',
+              'Please ensure this is intentional and follows your release process.'
+            ].join('\n');
+
+            await updateOrCreateComment(comment, '**Release Branch Detected**');
+
+            // Add Release: prefix to title if not present
+            if (!pr.title.startsWith('Release: ')) {
+              const newTitle = 'Release: ' + pr.title;
+              core.info('Adding Release prefix to PR title → ' + newTitle);
+              await github.rest.pulls.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                title: newTitle
+              });
+            }
+            return;
+          }
+
+          // Match branch: type/EMBR-1234-slug or username/type/EMBR-1234-slug
+          const m = branch.match(/^(?:[^/]+\/)?([^/]+)\/(EMBR-\d+)(?:[-_].*)?$/i);
+          if (!m) {
+            const availableTypes = Object.keys(TYPE_MAP).join(', ');
+            const comment = [
+              '⚠️ **Branch Naming Issue**',
+              '',
+              'The branch `' + branch + '` doesn\'t match the expected pattern: `type/EMBR-XXXX-description`',
+              '',
+              '**Expected format:** `type/EMBR-1234-your-feature-description` or `username/type/EMBR-1234-description`',
+              '**Available types:** ' + availableTypes,
+              '',
+              '**Examples:**',
+              '- `feature/EMBR-1234-new-login-form`',
+              '- `fix/EMBR-5678-authentication-bug`',
+              '- `docs/EMBR-9999-update-readme`',
+              '- `ademarco/bug/EMBR-4567-fix-validation`'
+            ].join('\n');
+
+            await updateOrCreateComment(comment, '**Branch Naming Issue**');
+            return;
+          }
+
+          const typeKey = m[1].toLowerCase();
+          const ticket  = m[2].toUpperCase();
+
+          const Type = TYPE_MAP[typeKey];
+          if (!Type) {
+            const availableTypes = Object.keys(TYPE_MAP).join(', ');
+            const comment = [
+              '💡 **New Branch Type Detected**',
+              '',
+              'The branch type `' + typeKey + '` is not currently configured in this action.',
+              '',
+              '**Available types:** ' + availableTypes,
+              '',
+              '**Want to add this type?** You can configure the action to support `' + typeKey + '` by adding it to the `additional_types` parameter:',
+              '',
+              '```yaml',
+              '- uses: embrace-io/embrace-pr-title@v1 # Use the correct version',
+              '  with:',
+              '    additional_types: \'{"' + typeKey + '": "' + typeKey.charAt(0).toUpperCase() + typeKey.slice(1) + '"}\'',
+              '```',
+              '',
+              '**Or combine with existing types:**',
+              '```yaml',
+              'additional_types: \'{"' + typeKey + '": "' + typeKey.charAt(0).toUpperCase() + typeKey.slice(1) + '", "perf": "Performance"}\'',
+              '```',
+              '',
+              'Alternatively, you can rename your branch to use one of the existing types.'
+            ].join('\n');
+
+            await updateOrCreateComment(comment, '**New Branch Type Detected**');
+            return;
+          }
+
+          const desiredPrefix = '[' + ticket + '] ' + Type + ': ';
+
+          if (!pr.title.startsWith(desiredPrefix)) {
+            const newTitle = desiredPrefix + pr.title;
+            core.info('Updating PR title → ' + newTitle);
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              title: newTitle
+            });
+          } else {
+            core.info('PR title already has the correct prefix.');
+          }
