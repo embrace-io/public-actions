@@ -1,0 +1,102 @@
+name: 'Release Notes Generator'
+description: 'Automatically generates grouped release notes from commit history between tags'
+branding:
+  icon: 'file-text'
+  color: 'green'
+
+inputs:
+  github_token:
+    description: 'GitHub token for API access'
+    required: false
+  current_tag:
+    description: 'Current tag/version (defaults to latest tag if not provided)'
+    required: false
+    default: 'latest'
+  base_tag:
+    description: 'Base tag to compare against (if not provided, automatically finds previous tag by semver)'
+    required: false
+  include_unmatched:
+    description: 'Include commits that do not match the pattern in an "Other" section (true/false)'
+    required: false
+    default: 'false'
+  update_changelog:
+    description: 'Update or create CHANGELOG.md file (true/false)'
+    required: false
+    default: 'true'
+  create_release:
+    description: 'Create or update GitHub Release (true/false)'
+    required: false
+    default: 'false'
+  additional_types:
+    description: 'Additional commit types as JSON object (e.g. {"perf": "Performance", "ci": "CI/CD"})'
+    required: false
+    default: '{}'
+  changelog_path:
+    description: 'Path to CHANGELOG.md file'
+    required: false
+    default: 'CHANGELOG.md'
+  release_draft:
+    description: 'Create release as draft (true/false)'
+    required: false
+    default: 'false'
+  release_prerelease:
+    description: 'Mark release as prerelease (true/false)'
+    required: false
+    default: 'false'
+
+outputs:
+  changelog:
+    description: 'Generated changelog content'
+    value: ${{ steps.generate.outputs.changelog }}
+  current_tag:
+    description: 'The current tag used for comparison'
+    value: ${{ steps.generate.outputs.current_tag }}
+  base_tag:
+    description: 'The base tag used for comparison'
+    value: ${{ steps.generate.outputs.base_tag }}
+  release_url:
+    description: 'URL of the created/updated release (if create_release is true)'
+    value: ${{ steps.generate.outputs.release_url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate Release Notes
+      id: generate
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github_token || github.token }}
+        script: |
+          const path = require('path');
+
+          // Get the action directory
+          const actionDir = path.join(process.env.GITHUB_ACTION_PATH, 'src');
+
+          // Load main script
+          const mainScript = require(path.join(actionDir, 'index.js'));
+
+          // Parse inputs
+          const config = {
+            currentTag: '${{ inputs.current_tag }}',
+            baseTag: '${{ inputs.base_tag }}' || null,
+            includeUnmatched: '${{ inputs.include_unmatched }}' === 'true',
+            updateChangelog: '${{ inputs.update_changelog }}' === 'true',
+            createRelease: '${{ inputs.create_release }}' === 'true',
+            changelogPath: '${{ inputs.changelog_path }}',
+            releaseDraft: '${{ inputs.release_draft }}' === 'true',
+            releasePrerelease: '${{ inputs.release_prerelease }}' === 'true',
+            additionalTypes: {}
+          };
+
+          // Parse additional types
+          try {
+            const additionalTypesStr = '${{ inputs.additional_types }}';
+            if (additionalTypesStr && additionalTypesStr !== '{}') {
+              config.additionalTypes = JSON.parse(additionalTypesStr);
+            }
+          } catch (e) {
+            core.warning('Invalid additional_types JSON, using empty object: ' + e.message);
+          }
+
+          // Run main script
+          await mainScript.run({ github, context, core, config });
