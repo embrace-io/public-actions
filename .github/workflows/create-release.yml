@@ -1,0 +1,42 @@
+name: Create Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g. 1.2.3)'
+        required: true
+        type: string
+      base_tag:
+        description: 'Optional base tag for comparison'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Tag release
+        env:
+          VERSION: ${{ inputs.version }}
+        run: ./scripts/tag-release.sh "$VERSION"
+
+      - name: Generate release notes
+        uses: ./release-notes-generator
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          current_tag: v${{ inputs.version }}
+          base_tag: ${{ inputs.base_tag }}
+          include_unmatched: true
+          create_release: true
+          update_changelog: false
+          is_prerelease: false
