@@ -1,0 +1,15 @@
+name: Test PR Title Formatter
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  format-title:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Format PR title
+        uses: ./pr-title-formatter
