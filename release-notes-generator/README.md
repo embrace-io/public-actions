@@ -58,7 +58,7 @@ This will:
     github_token: ${{ secrets.GITHUB_TOKEN }}
     current_tag: 'v1.2.0'
     create_release: true
-    release_prerelease: false
+    is_prerelease: false
 ```
 
 ### Include Unmatched Commits
@@ -94,7 +94,7 @@ This will:
 | `additional_types` | Additional commit types (JSON) | No | `{}` |
 | `changelog_path` | Path to CHANGELOG.md | No | `CHANGELOG.md` |
 | `release_draft` | Create release as draft | No | `false` |
-| `release_prerelease` | Mark release as prerelease | No | `false` |
+| `is_prerelease` | Mark release as prerelease | No | `false` |
 
 ## Outputs
 

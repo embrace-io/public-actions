@@ -69,8 +69,8 @@ function getCommitsBetween(baseRef, currentRef) {
  * @returns {{ticket: string, type: string, description: string}|null} Parsed data or null if no match
  */
 function parseCommitMessage(message) {
-  // Pattern: [EMBR-1234] Type: description
-  const pattern = /^\[?(EMBR-\d+)\]?\s+([^:]+):\s*(.+)$/i;
+  // Pattern: [EMBR-1234] Type: description (brackets are required)
+  const pattern = /^\[(EMBR-\d+)\]\s+([^:]+):\s*(.+)$/i;
   const match = message.match(pattern);
 
   if (!match) {

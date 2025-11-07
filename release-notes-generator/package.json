@@ -1,0 +1,22 @@
+{
+  "name": "release-notes-generator",
+  "version": "1.0.0",
+  "description": "Automatically generates grouped release notes from commit history between tags",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [
+    "github-actions",
+    "release-notes",
+    "changelog",
+    "automation"
+  ],
+  "author": "Embrace.io",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

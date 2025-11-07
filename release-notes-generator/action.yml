@@ -39,7 +39,7 @@ inputs:
     description: 'Create release as draft (true/false)'
     required: false
     default: 'false'
-  release_prerelease:
+  is_prerelease:
     description: 'Mark release as prerelease (true/false)'
     required: false
     default: 'false'
@@ -84,7 +84,7 @@ runs:
             createRelease: '${{ inputs.create_release }}' === 'true',
             changelogPath: '${{ inputs.changelog_path }}',
             releaseDraft: '${{ inputs.release_draft }}' === 'true',
-            releasePrerelease: '${{ inputs.release_prerelease }}' === 'true',
+            releasePrerelease: '${{ inputs.is_prerelease }}' === 'true',
             additionalTypes: {}
           };
 
